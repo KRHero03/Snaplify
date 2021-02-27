@@ -27,10 +27,7 @@ class _ChallengeGridState extends State<ChallengeGrid> {
       final encodedData = json.encode(data);
       http.Response response = await http.post(url,
           headers: {
-            "api_key": "12D3KooWJn8t1aFq8WjYiHCshBAwvDQH8wDFY5Y2Ue2ZPna89Zgb",
-            "api_secret":
-                "080112407b10de977fde0a6dca066d04a40dff20ebf89b37f88ca9555d46f6e478a1f1d18526fecf3b4addea43ee4ae51248c1bdb0f9c8507e696d56ee55926f384dfa08",
-          },
+           },
           body: encodedData);
       final base64String = base64.encode(response.bodyBytes);
       widget.challenge.images[i] = base64Decode(base64String);
