@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "556812871652",
+    "project_id": "snaplify-f83a2",
+    "storage_bucket": "snaplify-f83a2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:556812871652:android:efa2626081abddca3349f1",
+        "android_client_info": {
+          "package_name": "com.example.snaplify"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "556812871652-uab5rpg8adb6hh5fu9mdhc0fke88pikm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.snaplify",
+            "certificate_hash": "3c9f76dd81a55fd309ec0009a1c96619a731217b"
+          }
+        },
+        {
+          "client_id": "556812871652-24305mfe08ditkc74fckjd6vt16iarhg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALKQyDj-8eWWU9kx5Y19X_ojvEef2k7xE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "556812871652-24305mfe08ditkc74fckjd6vt16iarhg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
