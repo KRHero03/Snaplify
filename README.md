@@ -1,30 +1,43 @@
-# snaplify
+# Snaplify
 
-A new Flutter project.
+## Description 
+- The lockdown had a very significant impact on our lives and has proven to grow distances among our friends and families.
+- Snaplify provides a Gamified solution to this cause.
+- Users can share pictures of their memories with each other in a fun way. All they have to do is to share 4 Pictures relating to a WORD, to their friends and the friends are supposed to guess the WORD using the pictures.
+- Snaplify is classified as an Entry for the Track "Let's Have Fun", the secondary Track "Let's Connect" along with eligibility for the MATIC prize.
+- The core concept is to bring out the past happy memories and reminisce the happy events in users' lives.
+- Apart from this, it also provides a healthy competition that motivates users to share more such Snaps and Snap Challenges with their loved ones, which provides more Rewards.
+- User Identification is based on Google Accounts.
+- The App is made Child Friendly and it is made sure that no one publishes any vulgar images or words with the help of a Flask based Deep Learning model deployed on Heroku.
+- And don't worry about the Pictures as they are stored using the MOIBIT decentralized secure storage network which proves to be secured.
+- Snaplify also provides seamless User to User chat functionality to exchange chains of thoughts between users.
+- All in all, Snaplify also presents itself with an Attractive User Interface.
+
+## Problems we faced 
+- Designing a User-centric and User-Friendly Interface.
+- Modelling Database Entries for a Scalable Product.
+- Managing Versions of dependencies that are compatible with each other
+
+## Tech Stack
+- Flutter SDK
+- Firebase Backend as Service
+- Flask and Keras for Deploying Nudenet Classifier
+- Moibit Decentralised Storage Service
+- Algolia Search
+
+## Steps to Reproduce
+- Clone the Repository
+- Make sure you have Flutter SDK and Android SDK
+- Run the following code:
+```
+flutter pub get
+flutter run
+```
+
+## Future Prospects
+- Adding a Rewards Store
+- Adding Ad based Hints for Monetization
+- Adding Group Activity based on the Same Concept
 
 
-Steps to add a new Screen
-1. create a page in screen folder
-2. declare a static variable routeName
-    example:
-      static const routeName = 'login';
-3. Go to the main.dart file and add the new screen in the route section
-    example:
-            LoginIn.routeName: (ctx) => LoginIn(),
-
-TODO
-Create a file android/gradle.properties as per your system
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-
+### We'll be glad to have a large user base in future. Welcome to Snaplify!
