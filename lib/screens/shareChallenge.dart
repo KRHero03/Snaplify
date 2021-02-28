@@ -146,22 +146,22 @@ class _ShareChallengeState extends State<ShareChallenge> {
             setState(() {
               _isLoading = true;
             });
-            // final valid = await Provider.of<Server>(context, listen: false)
-            //     .checkImageSafety(images);
-            // if (!valid) {
-            //   await showDialog(
-            //       context: context,
-            //       builder: (ctx) {
-            //         return CustomAlertDialog(
-            //             title: "Inappropriate Image",
-            //             message:
-            //                 "You have used one or more Inappropriate Images! Please modify your image(s).");
-            //       });
-            //   setState(() {
-            //     _isLoading = false;
-            //   });
-            //   return;
-            // }
+             final valid = await Provider.of<Server>(context, listen: false)
+                 .checkImageSafety(images);
+             if (!valid) {
+               await showDialog(
+                   context: context,
+                   builder: (ctx) {
+                     return CustomAlertDialog(
+                         title: "Inappropriate Image",
+                         message:
+                             "You have used one or more Inappropriate Images! Please modify your image(s).");
+                   });
+               setState(() {
+                 _isLoading = false;
+               });
+               return;
+             }
             bool isOffensiveWordFound = false;
             OFFENSIVE_WORDS.forEach((element) {
               if (word.contains(element)) isOffensiveWordFound = true;
