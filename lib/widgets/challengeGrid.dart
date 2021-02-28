@@ -25,10 +25,8 @@ class _ChallengeGridState extends State<ChallengeGrid> {
     for (int i = 0; i < 4; ++i) {
       final data = {"fileName": widget.challenge.cId + i.toString()};
       final encodedData = json.encode(data);
-      http.Response response = await http.post(url,
-          headers: {
-          },
-          body: encodedData);
+      http.Response response =
+          await http.post(url, headers: {}, body: encodedData);
       final base64String = base64.encode(response.bodyBytes);
       widget.challenge.images[i] = base64Decode(base64String);
       if (mounted) setState(() {});

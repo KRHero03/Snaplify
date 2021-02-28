@@ -52,10 +52,8 @@ class _ChallengeGameScreenState extends State<ChallengeGameScreen> {
       if (challenge.images[i] != null) continue;
       final data = {"fileName": challenge.cId + i.toString()};
       final encodedData = json.encode(data);
-      http.Response response = await http.post(url,
-          headers: {
-          },
-          body: encodedData);
+      http.Response response =
+          await http.post(url, headers: {}, body: encodedData);
       final base64String = base64.encode(response.bodyBytes);
       challenge.images[i] = base64Decode(base64String);
       if (mounted) setState(() {});
