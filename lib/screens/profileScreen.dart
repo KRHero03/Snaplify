@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:snaplify/screens/profile.dart';
-import 'package:snaplify/screens/search_bar.dart';
+import 'package:snaplify/widgets/profile.dart';
 
 class ProfileScreen extends StatefulWidget {
   static const routeName = '/profileScreen';
@@ -15,15 +14,9 @@ class ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profile'),
-        actions: [
-          IconButton(
-              icon: Icon(Icons.search),
-              onPressed: () {
-                showSearch(context: context, delegate: DataSearch());
-              }),
-          // )
-        ],
+        // backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text("Profile"),
       ),
       body: Profile(userId: widget.userId),
     );
