@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:koukicons/addImage.dart';
 import 'package:koukicons/camera.dart';
@@ -80,14 +81,14 @@ class _CreateChallengeState extends State<CreateChallenge> {
         return;
       }
       try {
-        final pickedFile = await picker.getImage(source: value);
-        setState(() {
-          if (pickedFile != null) {
-            _image[id] = File(pickedFile.path);
-          } else {
-            print('No image selected.');
-          }
-        });
+        final pickedFile = await picker.getImage(
+          source: value,
+          imageQuality: 70,
+        );
+        if (pickedFile != null) {
+          _image[id] = File(pickedFile.path);
+        }
+        setState(() {});
         await retrieveLostData();
       } catch (e) {
         throw (e);
@@ -115,57 +116,63 @@ class _CreateChallengeState extends State<CreateChallenge> {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     final media = MediaQuery.of(context).size;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(title: Text("Create Challenge")),
-      body: Column(
-        children: [
-          SizedBox(height: media.height * 0.05),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _imageWidget(id: 0, media: media),
-                    _imageWidget(id: 1, media: media)
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _imageWidget(id: 2, media: media),
-                    _imageWidget(id: 3, media: media)
-                  ],
-                )
-              ],
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            SizedBox(height: media.height * 0.05),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _imageWidget(id: 0, media: media),
+                      _imageWidget(id: 1, media: media)
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _imageWidget(id: 2, media: media),
+                      _imageWidget(id: 3, media: media)
+                    ],
+                  )
+                ],
+              ),
             ),
-          ),
-          SizedBox(height: media.height * 0.1),
-          RaisedButton(
-              color: Theme.of(context).primaryColor,
-              onPressed: (_image[0] == null ||
-                      _image[1] == null ||
-                      _image[2] == null ||
-                      _image[3] == null)
-                  ? null
-                  : () async {
-                      await showDialog(
-                          context: context,
-                          builder: (_) => InputDialog()).then((word) {
-                        if (word != null)
-                          Navigator.of(context).pushNamed(
-                              ShareChallenge.routeName,
-                              arguments: {"word": word, "images": _image});
-                      });
-                    },
-              child: Text(
-                "NEXT",
-                style: TextStyle(color: Colors.white),
-              ))
-        ],
+            SizedBox(height: media.height * 0.1),
+            RaisedButton(
+                color: Theme.of(context).primaryColor,
+                onPressed: (_image[0] == null ||
+                        _image[1] == null ||
+                        _image[2] == null ||
+                        _image[3] == null)
+                    ? null
+                    : () async {
+                        await showDialog(
+                            context: context,
+                            builder: (_) => InputDialog()).then((word) {
+                          if (word != null)
+                            Navigator.of(context).pushNamed(
+                                ShareChallenge.routeName,
+                                arguments: {"word": word, "images": _image});
+                        });
+                      },
+                child: Text(
+                  "NEXT",
+                  style: TextStyle(color: Colors.white),
+                ))
+          ],
+        ),
       ),
     );
   }

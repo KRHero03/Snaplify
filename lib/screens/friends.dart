@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:snaplify/models/friendShipStatus.dart';
-import 'package:snaplify/providers/server.dart';
+import 'package:snaplify/providers/friendship.dart';
 import 'package:snaplify/widgets/alertDialog.dart';
 import 'package:snaplify/widgets/userGrid.dart';
 
@@ -12,7 +12,8 @@ class Friends extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder(
-          future: Provider.of<Server>(context, listen: false).getFriends(),
+          future: Provider.of<FriendDataProvider>(context, listen: false)
+              .getFriends(),
           builder: (_, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               if (snapshot.hasError) {
@@ -23,12 +24,15 @@ class Friends extends StatelessWidget {
                 );
               }
               if (snapshot.data.isEmpty)
-                return Center(child: Text("No Friends"));
+                return Center(
+                    child: Text("No Friends",
+                        style: TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.bold)));
               return ListView.builder(
                   itemCount: snapshot.data.length,
                   itemBuilder: (_, i) {
-                    return UserGrid(
-                        snapshot.data[i], FriendShipStatus.MyFriend);
+                    return UserGrid(snapshot.data[i],
+                        status: FriendShipStatus.MyFriend);
                   });
             }
             return Center(child: CircularProgressIndicator());
