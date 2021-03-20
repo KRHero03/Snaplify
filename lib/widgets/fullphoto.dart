@@ -3,6 +3,7 @@ import 'package:photo_view/photo_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class FullPhoto extends StatelessWidget {
+  static const routeName = '/fullimage';
   final String url;
 
   FullPhoto({Key key, @required this.url}) : super(key: key);
@@ -10,13 +11,8 @@ class FullPhoto extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Image',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-      ),
+      backgroundColor: Colors.black,
+      appBar: AppBar(backgroundColor: Colors.transparent),
       body: FullPhotoScreen(url: url),
     );
   }
@@ -44,6 +40,14 @@ class FullPhotoScreenState extends State<FullPhotoScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        child: PhotoView(imageProvider: CachedNetworkImageProvider(url)));
+        child: CachedNetworkImage(
+      imageUrl: url,
+      imageBuilder: (context, imageProvider) => PhotoView(
+        imageProvider: imageProvider,
+      ),
+      placeholder: (context, url) =>
+          Container(child: Center(child: CircularProgressIndicator())),
+      errorWidget: (context, url, error) => Icon(Icons.error),
+    ));
   }
 }

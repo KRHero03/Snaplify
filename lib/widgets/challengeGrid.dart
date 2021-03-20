@@ -1,10 +1,9 @@
-import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:snaplify/models/challenge.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:snaplify/screens/challengeGame.dart';
+import 'package:intl/intl.dart';
 
 class ChallengeGrid extends StatefulWidget {
   final Challenge challenge;
@@ -17,35 +16,17 @@ class ChallengeGrid extends StatefulWidget {
 class _ChallengeGridState extends State<ChallengeGrid> {
   int _currentPage = 0;
 
-  //Custom image loader
-  void moiBitDownload() async {
-    final url = 'https://kfs4.moibit.io/moibit/v0/readfile';
-    assert(widget.challenge.images.length <= 4);
-
-    for (int i = 0; i < 4; ++i) {
-      final data = {"fileName": widget.challenge.cId + i.toString()};
-      final encodedData = json.encode(data);
-      http.Response response =
-          await http.post(url, headers: {}, body: encodedData);
-      final base64String = base64.encode(response.bodyBytes);
-      widget.challenge.images[i] = base64Decode(base64String);
-      if (mounted) setState(() {});
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    moiBitDownload();
-  }
-
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context).size;
     return InkWell(
         onTap: () {
-          Navigator.of(context).pushNamed(ChallengeGameScreen.routeName,
-              arguments: widget.challenge);
+          Navigator.of(context)
+              .pushNamed(ChallengeGameScreen.routeName,
+                  arguments: widget.challenge)
+              .then((value) {
+            if (value != null && value == true) widget.challenge.done = true;
+          });
         },
         child: Card(
           margin: EdgeInsets.all(15),
@@ -74,11 +55,11 @@ class _ChallengeGridState extends State<ChallengeGrid> {
                         itemCount: 4,
                         itemBuilder: (BuildContext context, int itemIndex,
                             int currentIndex) {
-                          return (widget.challenge.images[itemIndex] != null)
-                              ? Image.memory(widget.challenge.images[itemIndex])
-                              : Image(
-                                  image: AssetImage(
-                                      'assets/images/loadingimage.gif'));
+                          return FadeInImage(
+                              image: NetworkImage(
+                                  widget.challenge.images[itemIndex]),
+                              placeholder:
+                                  AssetImage('assets/images/loadingimage.gif'));
                         },
                       ),
                     ),
@@ -91,29 +72,38 @@ class _ChallengeGridState extends State<ChallengeGrid> {
               Padding(
                   padding: EdgeInsets.all(4),
                   child: ListTile(
-                      leading: Material(
-                        child: CachedNetworkImage(
-                          placeholder: (context, url) => Container(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 1.0,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.purple),
-                            ),
-                            width: 35.0,
-                            height: 35.0,
-                            padding: EdgeInsets.all(10.0),
+                    leading: Material(
+                      child: CachedNetworkImage(
+                        placeholder: (context, url) => Container(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.0,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.purple),
                           ),
-                          imageUrl: widget.challenge.byImageUrl,
                           width: 35.0,
                           height: 35.0,
-                          fit: BoxFit.cover,
+                          padding: EdgeInsets.all(10.0),
                         ),
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(24.0),
-                        ),
-                        clipBehavior: Clip.hardEdge,
+                        imageUrl: widget.challenge.byImageUrl,
+                        width: 35.0,
+                        height: 35.0,
+                        fit: BoxFit.cover,
                       ),
-                      title: Text(widget.challenge.byName)))
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(24.0),
+                      ),
+                      clipBehavior: Clip.hardEdge,
+                    ),
+                    title: Text(widget.challenge.byName),
+                    subtitle: Text(
+                      DateFormat('dd MMM HH:mm')
+                          .format(widget.challenge.dateTime),
+                      style: TextStyle(
+                          color: Color(0xffaeaeae),
+                          fontSize: 12.0,
+                          fontStyle: FontStyle.italic),
+                    ),
+                  ))
             ],
           ),
         ));

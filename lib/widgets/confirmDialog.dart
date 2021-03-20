@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 
 // ignore: must_be_immutable
 class CustomConfirmDialog extends StatelessWidget {
-  final String title, message;
+  final String title, message, confirmMessage, denyMessage;
   final bool disableButton;
-  final onPressEvent;
   CustomConfirmDialog(
       {this.title,
       this.message,
       this.disableButton = false,
-      this.onPressEvent});
+      this.confirmMessage,
+      this.denyMessage});
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -55,13 +55,12 @@ class CustomConfirmDialog extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 20),
                   child: MaterialButton(
                     onPressed: () {
-                      this.onPressEvent(true);
-                      //TODO call use hint method
+                      Navigator.of(context).pop(true);
                     }, //since this is only a UI app
                     child: FittedBox(
                       fit: BoxFit.contain,
                       child: Text(
-                        'OKAY',
+                        this.confirmMessage,
                         style: TextStyle(
                           fontSize: 15,
                           fontFamily: 'Standard',
@@ -82,13 +81,12 @@ class CustomConfirmDialog extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 20),
                   child: MaterialButton(
                     onPressed: () {
-                      this.onPressEvent(false);
-                      Navigator.pop(context);
+                      Navigator.of(context).pop(false);
                     },
                     child: FittedBox(
                       fit: BoxFit.contain,
                       child: Text(
-                        'CANCEL',
+                        this.denyMessage,
                         style: TextStyle(
                           fontSize: 15,
                           fontFamily: 'Standard',
