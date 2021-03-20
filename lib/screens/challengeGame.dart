@@ -1,21 +1,21 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:koukicons/conferenceCall.dart';
-import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
 import 'package:snaplify/models/challenge.dart';
 import 'package:snaplify/models/friendShipStatus.dart';
 import 'package:snaplify/models/users.dart';
 import 'package:snaplify/providers/auth.dart';
-import 'package:snaplify/providers/server.dart';
+import 'package:snaplify/providers/challenge.dart';
+import 'package:snaplify/providers/friendship.dart';
 import 'package:snaplify/screens/challengeDetails.dart';
 import 'package:snaplify/screens/chatScreen.dart';
 import 'package:snaplify/widgets/alertDialog.dart';
 import 'package:snaplify/widgets/confirmDialog.dart';
+import 'package:snaplify/widgets/fullphoto.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:snaplify/widgets/panorama.dart';
 
 class ChallengeGameScreen extends StatefulWidget {
   static const routeName = '/game';
@@ -27,15 +27,13 @@ class ChallengeGameScreen extends StatefulWidget {
 
 class _ChallengeGameScreenState extends State<ChallengeGameScreen> {
   String _word = "";
-  bool _isLoading = false;
+  bool _isLoading = true;
   bool isFABClicked = true;
   Challenge challenge;
   FriendShipStatus status = FriendShipStatus.NoConnection;
   TextEditingController textEditingController = TextEditingController();
 
   bool hasError = false;
-
-  int points = 10;
 
   final List<Color> _imageWidgetColor = [
     Color(0xFFd8a0ae),
@@ -44,52 +42,51 @@ class _ChallengeGameScreenState extends State<ChallengeGameScreen> {
     Color(0xFF008080)
   ];
 
-  //Custom image loader
-  void moiBitDownload() async {
-    final url = 'https://kfs4.moibit.io/moibit/v0/readfile';
-    assert(challenge.images.length <= 4);
-    for (int i = 0; i < 4; ++i) {
-      if (challenge.images[i] != null) continue;
-      final data = {"fileName": challenge.cId + i.toString()};
-      final encodedData = json.encode(data);
-      http.Response response =
-          await http.post(url, headers: {}, body: encodedData);
-      final base64String = base64.encode(response.bodyBytes);
-      challenge.images[i] = base64Decode(base64String);
-      if (mounted) setState(() {});
+  _openFullImageWidget(id) async {
+    final userResponse = await showDialog(
+        context: context,
+        builder: (ctx) {
+          return CustomConfirmDialog(
+            title: "Image View Options",
+            message: "",
+            confirmMessage: 'NORMAL VIEW',
+            denyMessage: 'PANORAMA VIEW',
+          );
+        });
+    if (userResponse == null) return;
+    if (userResponse == false) {
+      Navigator.of(context).pushNamed(PanoramaWidget.routeName,
+          arguments: widget.challenge.images[id]);
+      return;
+    } else {
+      Navigator.of(context).pushNamed(FullPhoto.routeName,
+          arguments: widget.challenge.images[id]);
+      return;
     }
   }
 
   Widget _imageWidget({int id, dynamic media, Challenge challenge}) {
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        _openFullImageWidget(id);
+      },
       child: Container(
           margin: const EdgeInsets.all(3),
           padding: const EdgeInsets.all(0),
           color: _imageWidgetColor[id],
-          height: media.height * 0.26,
+          height: media.height * 0.25,
           width: media.width * 0.45,
           child: Center(
-              child: (challenge.images[id] != null)
-                  ? FlatButton(
-                      child: Image.memory(challenge.images[id]),
-                      onPressed: () {
-                        // Navigator.push(
-                        //     context,
-                        //     MaterialPageRoute(
-                        //         builder: (context) =>
-                        //             FullPhoto(url: challenge.images[id])));
-                      },
-                    )
-                  : Image(
-                      image: AssetImage('assets/images/loadingimage.gif')))),
+              child: FadeInImage(
+                  image: NetworkImage(widget.challenge.images[id]),
+                  placeholder: AssetImage('assets/images/loadingimage.gif')))),
     );
   }
 
   Future<void> getFriendShipStatus() async {
-    final userId = Provider.of<Auth>(context, listen: false).userId;
-    FriendShipStatus result = await Provider.of<Server>(context, listen: false)
-        .getFriendshipStatus(userId, challenge.byId);
+    FriendShipStatus result =
+        await Provider.of<FriendDataProvider>(context, listen: false)
+            .getFriendshipStatus(challenge.byId);
     if (mounted)
       this.setState(() {
         status = result;
@@ -98,11 +95,6 @@ class _ChallengeGameScreenState extends State<ChallengeGameScreen> {
   }
 
   void _fabClickEvent() async {
-    final userId = Provider.of<Auth>(context, listen: false).userId;
-    final currentUser = Provider.of<Auth>(context, listen: false).userDetails;
-    this.setState(() {
-      isFABClicked = true;
-    });
     if (status == FriendShipStatus.MyFriend) {
       Users user = Users(
           uId: challenge.byId,
@@ -112,49 +104,73 @@ class _ChallengeGameScreenState extends State<ChallengeGameScreen> {
           points: 0);
       Navigator.of(context).pushNamed(Chat.routeName, arguments: user);
     } else if (status == FriendShipStatus.RequestPending) {
-      await Provider.of<Server>(context, listen: false).responseToRequest(
-          new Users(
-              uId: challenge.byId,
-              email: null,
-              name: challenge.byName,
-              imageUrl: challenge.byImageUrl,
-              points: null),
-          currentUser,
-          true);
+      this.setState(() {
+        isFABClicked = true;
+      });
+      await Provider.of<FriendDataProvider>(context, listen: false)
+          .responseToRequest(
+              new Users(
+                  uId: challenge.byId,
+                  email: null,
+                  name: challenge.byName,
+                  imageUrl: challenge.byImageUrl,
+                  points: null),
+              true);
       this.setState(() {
         status = FriendShipStatus.MyFriend;
+        isFABClicked = false;
       });
       Fluttertoast.showToast(
           msg: 'Challenger added to Friend List!',
           textColor: Colors.white,
           backgroundColor: Colors.purple);
     } else if (status == FriendShipStatus.RequestSent) {
-      await Provider.of<Server>(context, listen: false)
-          .undoRequest(challenge.byId, userId);
+      this.setState(() {
+        isFABClicked = true;
+      });
+      await Provider.of<FriendDataProvider>(context, listen: false)
+          .undoRequest(challenge.byId);
       this.setState(() {
         status = FriendShipStatus.NoConnection;
+        isFABClicked = false;
       });
       Fluttertoast.showToast(
           msg: 'Removed Friend Request sent by you!',
           textColor: Colors.white,
           backgroundColor: Colors.purple);
     } else if (status == FriendShipStatus.NoConnection) {
-      await Provider.of<Server>(context, listen: false)
-          .sendRequest(challenge.byId, currentUser);
+      this.setState(() {
+        isFABClicked = true;
+      });
+      await Provider.of<FriendDataProvider>(context, listen: false).sendRequest(
+        Users(
+            name: challenge.byName,
+            email: "",
+            uId: challenge.byId,
+            imageUrl: challenge.byImageUrl),
+      );
       Fluttertoast.showToast(
           msg: 'Sent Friend Request to challenger!',
           textColor: Colors.white,
           backgroundColor: Colors.purple);
       this.setState(() {
         status = FriendShipStatus.RequestSent;
+        isFABClicked = false;
       });
     }
-    this.setState(() {
-      isFABClicked = false;
-    });
   }
 
   void _getHint() async {
+    if (challenge.done == true) {
+      await showDialog(
+          context: context,
+          builder: (ctx) {
+            return CustomAlertDialog(
+                title: "Snap Challenge Solved!",
+                message: "You have already solved the challenge!");
+          });
+      return;
+    }
     if (challenge.hints.length >= min(challenge.word.length - 2, 3)) {
       await showDialog(
           context: context,
@@ -173,20 +189,27 @@ class _ChallengeGameScreenState extends State<ChallengeGameScreen> {
             title: "Use a Hint",
             message:
                 "Are you sure you want to use a Hint? Note that for each Hint, your reward Ingots will be reduced!",
+            confirmMessage: 'YES',
+            denyMessage: 'NO',
           );
         });
 
-    if (!userResponse) return;
-
-    final hintResponse =
-        await Provider.of<Server>(context, listen: false).getHints(challenge);
-    await showDialog(
+    if (userResponse == null || userResponse == false) return;
+    showDialog(
         context: context,
-        builder: (ctx) {
-          return CustomAlertDialog(
-              title: "New Hint Unlocked!",
-              message: "You have unlocked a new Hint!");
-        });
+        barrierDismissible: false,
+        builder: (ctx) => Center(child: CircularProgressIndicator()));
+
+    await Provider.of<ChallengesProvider>(context, listen: false)
+        .getHints(challenge);
+
+    Navigator.pop(context);
+
+    Fluttertoast.showToast(
+        msg: 'New Hint Unlocked!',
+        textColor: Colors.white,
+        backgroundColor: Colors.purple);
+
     Challenge newChallenge = new Challenge(
         cId: challenge.cId,
         byId: challenge.byId,
@@ -209,10 +232,21 @@ class _ChallengeGameScreenState extends State<ChallengeGameScreen> {
   initState() {
     super.initState();
     if (mounted) {
-      setState(() {
-        challenge = widget.challenge;
+      challenge = widget.challenge;
+      Provider.of<ChallengesProvider>(context, listen: false)
+          .loadHints(challenge.cId, challenge.byId)
+          .then((value) {
+        challenge.hints = value;
+        Provider.of<ChallengesProvider>(context, listen: false)
+            .isDoneChallenge(challenge.cId, challenge.byId, challenge.isGlobal)
+            .then((value) {
+          challenge.done = value;
+          if (mounted)
+            setState(() {
+              _isLoading = false;
+            });
+        });
       });
-      moiBitDownload();
     }
   }
 
@@ -227,22 +261,33 @@ class _ChallengeGameScreenState extends State<ChallengeGameScreen> {
     final userId = Provider.of<Auth>(context, listen: false).userId;
     final currentUser = Provider.of<Auth>(context, listen: false).userDetails;
     final media = MediaQuery.of(context).size;
+    final bool _isDarkMode =
+        MediaQuery.of(context).platformBrightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Solve Snap-Challenge"),
-        actions: [
-          if (challenge.byId != userId)
-            IconButton(icon: Icon(Icons.help), onPressed: _getHint),
-          if (challenge.byId == userId && !challenge.isGlobal)
-            IconButton(
-                icon: KoukiconsConferenceCall(),
-                onPressed: () {
-                  Navigator.of(context).pushNamed(
-                      ChallengeDoneDetails.routeName,
-                      arguments: challenge);
-                })
-        ],
+        leading: IconButton(
+          icon: Icon(Icons.chevron_left),
+          onPressed: () => Navigator.pop(context, (challenge.done)),
+        ),
+        title: Text("Challenge"),
+        actions: (_isLoading)
+            ? []
+            : [
+                if (challenge.byId != userId)
+                  IconButton(icon: Icon(Icons.help), onPressed: _getHint),
+                if (challenge.byId == userId && !challenge.isGlobal)
+                  IconButton(
+                      icon: Icon(
+                        Icons.people,
+                        size: 30,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                            ChallengeDoneDetails.routeName,
+                            arguments: challenge);
+                      })
+              ],
       ),
       body: (_isLoading)
           ? Center(child: CircularProgressIndicator())
@@ -250,7 +295,7 @@ class _ChallengeGameScreenState extends State<ChallengeGameScreen> {
               children: [
                 (challenge.done)
                     ? SizedBox(
-                        height: media.height * 0.02,
+                        height: media.height * 0.04,
                       )
                     : Column(children: [
                         Padding(
@@ -259,31 +304,30 @@ class _ChallengeGameScreenState extends State<ChallengeGameScreen> {
                             child: Text('Guess the Word',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 24,
+                                  fontSize: 20,
                                 ))),
-                        Padding(
-                            padding: EdgeInsets.fromLTRB(20,
-                                media.height * 0.01, 20, media.height * 0.01),
-                            child: PinCodeTextField(
-                              textCapitalization: TextCapitalization.characters,
-                              appContext: context,
-                              textStyle: TextStyle(color: Colors.white),
-                              backgroundColor: Colors.transparent,
-                              length: challenge.word.length,
-                              keyboardType: TextInputType.text,
-                              animationType: AnimationType.fade,
-                              onChanged: (value) {
-                                _word = value.toLowerCase();
-                              },
-                              pinTheme: PinTheme(
-                                shape: PinCodeFieldShape.circle,
-                                activeColor: Colors.purple,
-                                inactiveColor: Colors.white,
-                              ),
-                            )),
+                        PinCodeTextField(
+                          textCapitalization: TextCapitalization.characters,
+                          appContext: context,
+                          backgroundColor: Colors.transparent,
+                          textStyle: TextStyle(
+                              color:
+                                  (_isDarkMode) ? Colors.white : Colors.black),
+                          length: challenge.word.length,
+                          keyboardType: TextInputType.text,
+                          animationType: AnimationType.fade,
+                          onChanged: (value) {
+                            _word = value.toLowerCase();
+                          },
+                          pinTheme: PinTheme(
+                            shape: PinCodeFieldShape.circle,
+                            activeColor: Colors.purple,
+                            inactiveColor: Colors.purple,
+                          ),
+                        ),
                       ]),
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.only(bottom: 2.0),
                   child: Column(
                     children: [
                       Row(
@@ -307,12 +351,14 @@ class _ChallengeGameScreenState extends State<ChallengeGameScreen> {
                     ],
                   ),
                 ),
+                if (challenge.hints.length > 0) Center(child: Text("Hints")),
                 challenge.hints.length > 0
                     ? Column(
                         children: [
                           for (var i = 0; i < challenge.hints.length; i++)
                             Padding(
-                                padding: const EdgeInsets.only(top: 10),
+                                padding:
+                                    EdgeInsets.only(top: media.height * 0.005),
                                 child: Text(
                                     'Letter at position ${challenge.hints[i] + 1} : ${challenge.word[challenge.hints[i]].toUpperCase()}'))
                         ],
@@ -320,14 +366,14 @@ class _ChallengeGameScreenState extends State<ChallengeGameScreen> {
                     : Text(""),
                 challenge.hints.length > 0
                     ? SizedBox(height: media.height * 0.005)
-                    : SizedBox(height: media.height * 0.03),
+                    : SizedBox(height: media.height * 0.02),
                 (challenge.done)
                     ? Text(
                         "The word is ${challenge.word.toUpperCase()}",
                         textAlign: TextAlign.center,
                       )
                     : Padding(
-                        padding: const EdgeInsets.only(left: 80, right: 80),
+                        padding: const EdgeInsets.only(left: 100, right: 100),
                         child: RaisedButton(
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(18.0),
@@ -338,12 +384,13 @@ class _ChallengeGameScreenState extends State<ChallengeGameScreen> {
                                 _isLoading = true;
                               });
                               try {
-                                print(_word);
                                 if (_word.toLowerCase() ==
                                     challenge.word.toLowerCase()) {
-                                  await Provider.of<Server>(context,
-                                          listen: false)
-                                      .correctGuess(challenge, currentUser);
+                                  final points =
+                                      await Provider.of<ChallengesProvider>(
+                                              context,
+                                              listen: false)
+                                          .correctGuess(challenge, currentUser);
                                   challenge.done = true;
                                   await showDialog(
                                       context: context,

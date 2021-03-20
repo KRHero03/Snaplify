@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
@@ -11,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:snaplify/models/users.dart';
 import 'package:snaplify/providers/auth.dart';
+import 'package:snaplify/providers/challenge.dart';
 import 'package:snaplify/widgets/fullphoto.dart';
 
 class Chat extends StatelessWidget {
@@ -118,7 +118,8 @@ class ChatScreenState extends State<ChatScreen> {
     ImagePicker imagePicker = ImagePicker();
     PickedFile pickedFile;
 
-    pickedFile = await imagePicker.getImage(source: ImageSource.gallery);
+    pickedFile = await imagePicker.getImage(
+        source: ImageSource.gallery, imageQuality: 50);
     imageFile = File(pickedFile.path);
 
     if (imageFile != null) {
@@ -132,23 +133,21 @@ class ChatScreenState extends State<ChatScreen> {
   Future uploadFile() async {
     String fileName = DateTime.now().millisecondsSinceEpoch.toString();
 
-    Reference reference = FirebaseStorage.instance.ref().child(fileName);
-    reference.putFile(imageFile).then((TaskSnapshot storageTaskSnapshot) => {
-          storageTaskSnapshot.ref.getDownloadURL().then((downloadUrl) {
-            print(downloadUrl);
-            imageUrl = downloadUrl;
-            setState(() {
-              isLoading = false;
-              onSendMessage(imageUrl, 1);
-            });
-          }, onError: (err) {
-            setState(() {
-              isLoading = false;
-            });
-            Fluttertoast.showToast(
-                msg: 'Unable to send Image! Please try again.');
-          })
-        });
+    try {
+      final downloadUrl =
+          await Provider.of<ChallengesProvider>(context, listen: false)
+              .uploadFile(imageFile, fileName);
+      imageUrl = downloadUrl;
+      setState(() {
+        isLoading = false;
+        onSendMessage(imageUrl, 1);
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      Fluttertoast.showToast(msg: 'Unable to send Image! Please try again.');
+    }
   }
 
   void onSendMessage(String content, int type) {
@@ -357,7 +356,7 @@ class ChatScreenState extends State<ChatScreen> {
             isLastMessageLeft(index)
                 ? Container(
                     child: Text(
-                      DateFormat('dd MMM kk:mm').format(
+                      DateFormat('dd MMM HH:mm').format(
                           DateTime.fromMillisecondsSinceEpoch(
                               int.parse(document.data()['timestamp']))),
                       style: TextStyle(
@@ -400,7 +399,7 @@ class ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    id = Provider.of<Auth>(context).userId;
+    id = Provider.of<Auth>(context, listen: false).userId;
     return Stack(
       children: <Widget>[
         Column(
