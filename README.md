@@ -4,7 +4,6 @@
 - The lockdown had a very significant impact on our lives and has proven to grow distances among our friends and families.
 - Snaplify provides a Gamified solution to this cause.
 - Users can share pictures of their memories with each other in a fun way. All they have to do is to share 4 Pictures relating to a WORD, to their friends and the friends are supposed to guess the WORD using the pictures.
-- Snaplify is classified as an Entry for the Track "Let's Have Fun", the secondary Track "Let's Connect" along with eligibility for the MATIC prize.
 - The core concept is to bring out the past happy memories and reminisce the happy events in users' lives.
 - Apart from this, it also provides a healthy competition that motivates users to share more such Snaps and Snap Challenges with their loved ones, which provides more Rewards.
 - User Identification is based on Google Accounts.
@@ -24,6 +23,24 @@
 - Flask and Keras for Deploying Nudenet Classifier
 - Moibit Decentralised Storage Service
 - Algolia Search
+
+## Declaration of Work Done during HackNITR
+- Created UI Animations
+- Added Friends Section to Profile
+- Added Image Viewer Screen
+- Created Panorama View for Uploaded Images for Enhanced User Experience
+- Added Challenge Streak System
+- Added Streak Rewards
+- Modified Firebase Queries for Persistent Storage of Images and Details
+- Cleaned Code and refractored Providers 
+- Modified Icons used
+- Fixed Bugs that went unnoticed previously
+
+## Declaration of Previous Work
+- Created Routes for App
+- Connected App with Firebase Services
+- Created Basic Framework for the App
+- Created Basic UI
 
 ## Steps to Reproduce
 - Clone the Repository
