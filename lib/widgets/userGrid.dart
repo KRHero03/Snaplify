@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:snaplify/models/friendShipStatus.dart';
 import 'package:snaplify/models/users.dart';
 import 'package:snaplify/providers/auth.dart';
-import 'package:snaplify/providers/server.dart';
+import 'package:snaplify/providers/friendship.dart';
 import 'package:snaplify/screens/chatScreen.dart';
 import 'package:snaplify/widgets/alertDialog.dart';
 import 'package:snaplify/screens/profileScreen.dart';
@@ -14,7 +14,8 @@ import 'package:snaplify/widgets/requestResponseButton.dart';
 class UserGrid extends StatefulWidget {
   final Users _user;
   FriendShipStatus status;
-  UserGrid(this._user, this.status);
+  final bool disableButton;
+  UserGrid(this._user, {this.status, this.disableButton = false});
 
   @override
   _UserGridState createState() => _UserGridState();
@@ -72,7 +73,7 @@ class _UserGridState extends State<UserGrid> {
           subtitle: (widget._user.points != null)
               ? Text(widget._user.points.toString() + ' Ingots')
               : null,
-          trailing: _myId == widget._user.uId
+          trailing: _myId == widget._user.uId || widget.disableButton
               ? null
               : _isLoading
                   ? Padding(
@@ -82,7 +83,7 @@ class _UserGridState extends State<UserGrid> {
                   : widget.status == FriendShipStatus.RequestPending
                       ? RequestResponseButton(
                           widget._user, onPressEventForChild)
-                      : FlatButton(
+                      : TextButton(
                           onPressed: () async {
                             try {
                               setState(() {
@@ -93,15 +94,15 @@ class _UserGridState extends State<UserGrid> {
                                     arguments: widget._user);
                               } else if (widget.status ==
                                   FriendShipStatus.RequestSent) {
-                                await Provider.of<Server>(context,
+                                await Provider.of<FriendDataProvider>(context,
                                         listen: false)
-                                    .undoRequest(widget._user.uId, _myId);
+                                    .undoRequest(widget._user.uId);
                                 widget.status = FriendShipStatus.NoConnection;
                               } else {
                                 // user can follow other user
-                                await Provider.of<Server>(context,
+                                await Provider.of<FriendDataProvider>(context,
                                         listen: false)
-                                    .sendRequest(widget._user.uId);
+                                    .sendRequest(widget._user);
                                 widget.status = FriendShipStatus.RequestSent;
                               }
                               setState(() {
